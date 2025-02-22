@@ -3,12 +3,10 @@
 <head>
     <title>3D Globe Visualization</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            touch-action: none; /* Prevent default touch behaviors */
         }
         #globe-container {
             width: 100%;
@@ -25,7 +23,6 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             max-width: 300px;
             z-index: 1000;
-            touch-action: none;
         }
 
         .location-card h3 {
@@ -36,15 +33,17 @@
         .location-card p {
             color: #333;
             line-height: 1.5;
+            margin-bottom: 8px;
         }
 
-        @media (max-width: 768px) {
-            .location-card {
-                max-width: 80%;
-                left: 50% !important;
-                transform: translateX(-50%);
-                bottom: 20px;
-            }
+        .location-card .category {
+            font-weight: bold;
+            color: #127c9c;
+        }
+
+        .location-card .year {
+            font-style: italic;
+            color: #666;
         }
     </style>
 </head>
@@ -52,23 +51,45 @@
     <div id="globe-container"></div>
     <div id="location-card" class="location-card">
         <h3 id="location-title"></h3>
+        <p id="location-category" class="category"></p>
+        <p id="location-year" class="year"></p>
         <p id="location-description"></p>
     </div>
 
     <script>
         // Initialize Three.js scene
         const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf4f4f4);
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('globe-container').appendChild(renderer.domElement);
+
+        // Create stars
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsMaterial = new THREE.PointsMaterial({
+            color: 0xFFFFFF,
+            size: 0.1
+        });
+
+        const starsVertices = [];
+        for(let i = 0; i < 10000; i++) {
+            const x = (Math.random() - 0.5) * 2000;
+            const y = (Math.random() - 0.5) * 2000;
+            const z = (Math.random() - 0.5) * 2000;
+            starsVertices.push(x, y, z);
+        }
+
+        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+        const stars = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(stars);
 
         // Create globe
         const radius = 5;
         const segments = 64;
         const geometry = new THREE.SphereGeometry(radius, segments, segments);
         const textureLoader = new THREE.TextureLoader();
-        const texture = textureLoader.load('https://threejs.org/examples/textures/land_ocean_ice_cloud_2048.jpg');
+        const texture = textureLoader.load('./Assets/img/light.jpg');
         const material = new THREE.MeshPhongMaterial({ map: texture });
         const globe = new THREE.Mesh(geometry, material);
         scene.add(globe);
@@ -76,50 +97,699 @@
         // Add lighting
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
-        const pointLight = new THREE.PointLight(0xffffff, 1);
+        const pointLight = new THREE.PointLight(0xffffff, 0.34);
         pointLight.position.set(10, 10, 10);
         scene.add(pointLight);
+
+        // Add back light for glow effect
+        const backLight = new THREE.PointLight(0xffffff, 1);
+        backLight.position.set(0, 0, -15);
+        scene.add(backLight);
 
         // Set camera position
         camera.position.z = 10;
 
-        // Location data with more points
+        // Location data
         const locations = [
             {
-                name: "Tokyo, Japan",
-                lat: 35.6762,
-                lng: 139.6503,
-                description: "The bustling capital of Japan, known for its unique blend of traditional culture and modern technology."
+                name: "Shandong, China",
+                lat: 36.3427,
+                lng: 118.1498,
+                programme: "Looking China",
+                year: 2019,
+                category: "INT EXCHANGE",
+                description: "Arun Gupta and Rahul Jain participated in the youth film project, leading to 10 short documentaries."
             },
             {
-                name: "New York, USA",
-                lat: 40.7128,
-                lng: -74.0060,
-                description: "The city that never sleeps, featuring iconic landmarks and diverse cultural experiences."
+                name: "India",
+                lat: 20.5937,
+                lng: 78.9629,
+                programme: "India Remembers Octavio Paz",
+                year: 2019,
+                category: "EXHIBITION",
+                description: "Poster exhibition based on Octavio Paz's poems, organized by NID and the Mexican Embassy."
+            },
+            {
+                name: "Manipur, India",
+                lat: 24.6637,
+                lng: 93.9063,
+                programme: "Craft Map and Innovative Crafts Souvenirs of Manipur",
+                year: 2019,
+                category: "IDS PROJECT",
+                description: "Launch event for innovative craft souvenirs and craft maps as part of 'Design for Manipur'."
+            },
+            {
+                name: "Mumbai, India",
+                lat: 19.076,
+                lng: 72.8777,
+                programme: "Responses - A Photo Exhibition",
+                year: 2020,
+                category: "INT EXCHANGE",
+                description: "Photography exhibition in collaboration with Goethe Institute and Leipzig Academy of Fine Art."
+            },
+            {
+                name: "Leipzig, Germany",
+                lat: 51.3397,
+                lng: 12.3731,
+                programme: "Responses - A Photo Exhibition",
+                year: 2020,
+                category: "INT EXCHANGE",
+                description: "Photography exhibition in collaboration with Goethe Institute and Leipzig Academy of Fine Art."
+            },
+            {
+                name: "Guadalajara, Mexico",
+                lat: 20.6597,
+                lng: -103.3496,
+                programme: "Modernism in India - Through NID Archives",
+                year: 2019,
+                category: "EXHIBITION",
+                description: "Exhibition tracing India's modernist design history through NID archives."
+            },
+            {
+                name: "Bengaluru, India",
+                lat: 12.9716,
+                lng: 77.5946,
+                programme: "National Conference on Assistive Technology",
+                year: 2019,
+                category: "CONFERENCE",
+                description: "Conference on Assistive Technology organized by Mobility India with participation from NID."
+            },
+            {
+                name: "Delhi, India",
+                lat: 28.7041,
+                lng: 77.1025,
+                programme: "Digital Mini Spectacle - Hampi",
+                year: 2020,
+                category: "RESEARCH",
+                description: "Exhibition showcasing Indian Digital Heritage initiatives."
+            },
+            {
+                name: "Guadalajara, Mexico",
+                lat: 20.6597,
+                lng: -103.3496,
+                programme: "Guest of Honour India Pavilion",
+                year: 2019,
+                category: "IDS PROJECT",
+                description: "Design and supervision of India's Pavilion at Guadalajara Book Fair."
+            },
+            {
+                name: "Abu Dhabi, UAE",
+                lat: 23.4241,
+                lng: 53.8478,
+                programme: "Guest of Honour India Pavilion",
+                year: 2019,
+                category: "IDS PROJECT",
+                description: "Design and supervision of India's Pavilion at Abu Dhabi International Book Fair."
+            },
+            {
+                name: "Paris, France",
+                lat: 46.6034,
+                lng: 1.8883,
+                programme: "Guest of Honour India Pavilion",
+                year: 2022,
+                category: "IDS PROJECT",
+                description: "Design and supervision of India's Pavilion at Festival du Livres de Paris."
+            },
+            {
+                name: "Gujarat, India",
+                lat: 22.2587,
+                lng: 71.1924,
+                programme: "Design of Industrial Overall for Women for ONGC",
+                year: 2019,
+                category: "IDS PROJECT",
+                description: "Design of industrial overalls (dungarees) for women workers at ONGC."
+            },
+            {
+                name: "Rajasthan, India",
+                lat: 27.0238,
+                lng: 74.2179,
+                programme: "Ajit Vivek Museum for Ramakrishna Mission",
+                year: 2019,
+                category: "IDS PROJECT",
+                description: "Project inauguration for a museum at Ramakrishna Mission, Khetri."
+            },
+            {
+                name: "Ahmedabad, India",
+                lat: 23.0225,
+                lng: 72.5714,
+                programme: "Relating Systems Thinking and Design Symposium (RSD9)",
+                year: 2020,
+                category: "CONFERENCE",
+                description: "Symposium on systemic design thinking hosted by NID Ahmedabad and Systemic Design Association."
+            },
+            {
+                name: "Bengaluru, India",
+                lat: 12.9716,
+                lng: 77.5946,
+                programme: "WIRIN Project - Autonomous Vehicle",
+                year: 2020,
+                category: "RESEARCH",
+                description: "WIPRO-IISC-NID joint-research initiative on autonomous vehicles."
+            },
+            {
+                name: "Delhi, India",
+                lat: 28.7041,
+                lng: 77.1025,
+                programme: "MoU with IGNCA",
+                year: 2019,
+                category: "COLLABORATION",
+                description: "Memorandum of Understanding signed to promote collaboration in research, exhibitions, and archival access."
+            },
+            {
+                name: "Ahmedabad, India",
+                lat: 23.0225,
+                lng: 72.5714,
+                programme: "PDC Place India Conference 2022",
+                year: 2022,
+                category: "CONFERENCE",
+                description: "Conference to map Participatory Design practices in India."
+            },
+            {
+                name: "Ahmedabad, India",
+                lat: 23.0225,
+                lng: 72.5714,
+                programme: "6th Alpavirama International Youth Film Festival 2024",
+                year: 2024,
+                category: "CONFERENCE",
+                description: "Film festival organized by NID Ahmedabad's Film & Video Communication discipline."
+            },
+            {
+                name: "Ahmedabad, India",
+                lat: 23.0225,
+                lng: 72.5714,
+                programme: "MoU with ISRO for Indian Spaceflight Programme",
+                year: 2023,
+                category: "COLLABORATION",
+                description: "MoU signed for designing systems and products for India's human spaceflight program."
+            },
+            {
+                name: "Bengaluru, India",
+                lat: 12.9716,
+                lng: 77.5946,
+                programme: "IXDS: Interaction Design Symposium",
+                year: 2024,
+                category: "CONFERENCE",
+                description: "Symposium on interaction design in the digital age."
+            },
+            {
+                name: "Ahmedabad, India",
+                lat: 23.0225,
+                lng: 72.5714,
+                programme: "Relating Systems Thinking to Design Symposium (RSD12)",
+                year: 2023,
+                category: "CONFERENCE",
+                description: "Relating Systems Thinking and Design Symposium - India Hub event."
+            },
+            {
+                name: "Paris, France",
+                lat: 48.8566,
+                lng: 2.3522,
+                programme: "India Pavilion at VivaTech 2023",
+                year: 2023,
+                category: "IDS PROJECT",
+                description: "Design of India's Pavilion at VivaTech 2023 in Paris."
+            },
+            {
+                name: "Cannes, France",
+                lat: 43.5528,
+                lng: 7.0174,
+                programme: "India Pavilion at Festival de Cannes 2023 & 2024",
+                year: "2023-2024",
+                category: "IDS PROJECT",
+                description: "Design of India's Pavilion at Festival de Cannes 2023, celebrating India's creative economy."
+            },
+            {
+                name: "India",
+                lat: 20.5937,
+                lng: 78.9629,
+                programme: "Indian Footwear and Leather Development Programme (IFLPD)",
+                year: 2023,
+                category: "IDS PROJECT",
+                description: "Setting up of a Design Studio under the Indian Footwear and Leather Development Programme."
+            },
+            {
+                name: "India",
+                lat: 20.5937,
+                lng: 78.9629,
+                programme: "NID-IGNCA Workshop for Artwork Curation",
+                year: 2024,
+                category: "COLLABORATION",
+                description: "Workshop for artwork curation in buildings of national importance."
+            },
+            {
+                name: "Zimbabwe",
+                lat: -19.0154,
+                lng: 29.1549,
+                programme: "Basketry Craft Design Interventions",
+                year: 2014,
+                category: "IDS PROJECT",
+                description: "Modernizing weaving techniques, empowering artisans"
+            },
+            {
+                name: "Ethiopia",
+                lat: 9.145,
+                lng: 40.4897,
+                programme: "Basketry Craft Design Interventions",
+                year: 2014,
+                category: "IDS PROJECT",
+                description: "Modernizing weaving techniques, empowering artisans"
+            },
+            {
+                name: "Ghana",
+                lat: 7.9465,
+                lng: -1.0232,
+                programme: "Basketry Craft Design Interventions",
+                year: 2014,
+                category: "IDS PROJECT",
+                description: "Modernizing weaving techniques, empowering artisans"
+            },
+            {
+                name: "UK",
+                lat: 55.3781,
+                lng: -3.436,
+                programme: "Design Education Collaborations",
+                category: "INT EXCHANGE",
+                description: "Collaborations with RCA (UK), Aalto University (Finland), Politecnico di Milano (Italy)"
+            },
+            {
+                name: "Finland",
+                lat: 61.9241,
+                lng: 25.7482,
+                programme: "Design Education Collaborations",
+                category: "INT EXCHANGE",
+                description: "Collaborations with RCA (UK), Aalto University (Finland), Politecnico di Milano (Italy)"
+            },
+            {
+                name: "Italy",
+                lat: 41.8719,
+                lng: 12.5674,
+                programme: "Design Education Collaborations",
+                category: "INT EXCHANGE",
+                description: "Collaborations with RCA (UK), Aalto University (Finland), Politecnico di Milano (Italy)"
+            },
+            {
+                name: "Japan",
+                lat: 36.2048,
+                lng: 138.2529,
+                programme: "India Design Mark (I-Mark)",
+                year: 2012,
+                category: "COLLABORATION",
+                description: "Certifying Indian industrial designs, in cooperation with Japan Institute of Design Promotion (JDP)"
+            },
+            {
+                name: "France",
+                lat: 46.6034,
+                lng: 1.8883,
+                programme: "Exhibition of French Maps & Drawings",
+                category: "EXHIBITION",
+                description: "Cultural and historical Indo-French design project"
+            },
+            {
+                name: "Thailand",
+                lat: 15.87,
+                lng: 100.9925,
+                programme: "NID-ENSCI-KMUTT Summer Workshop",
+                year: 2024,
+                category: "INT EXCHANGE",
+                description: "International cross-cultural design education"
+            },
+            {
+                name: "Bangladesh",
+                lat: 23.685,
+                lng: 90.3563,
+                programme: "Jute Textile Promotion",
+                category: "IDS PROJECT",
+                description: "Sustainable design interventions in traditional jute craft"
+            },
+            {
+                name: "Bhutan",
+                lat: 27.5142,
+                lng: 90.4336,
+                programme: "Jute Textile Promotion",
+                category: "IDS PROJECT",
+                description: "Sustainable design interventions in traditional jute craft"
+            },
+            {
+                name: "Delhi, India",
+                lat: 28.7041,
+                lng: 77.1025,
+                programme: "Polling Booth Identity, BrahMos Branding",
+                category: "IDS PROJECT",
+                description: "Election Commission Booth Identity, BrahMos Aerospace Branding"
+            },
+            {
+                name: "Uttar Pradesh, India",
+                lat: 26.8467,
+                lng: 80.9462,
+                programme: "Lucknow Design Institute, Monorail Branding",
+                category: "IDS PROJECT",
+                description: "Design curriculum for Lucknow Design Institute, Monorail Branding"
+            },
+            {
+                name: "Gujarat, India",
+                lat: 22.2587,
+                lng: 71.1924,
+                programme: "Ahmedabad BRTS Branding, Amul Kiosk & Packaging",
+                year: 2010,
+                category: "IDS PROJECT",
+                description: "Branding Ahmedabad's BRTS, designing Amul packaging"
+            },
+            {
+                name: "Maharashtra, India",
+                lat: 19.7515,
+                lng: 75.7139,
+                programme: "RBI Monetary Museum, Mumbai Railway Scheme",
+                year: 2006,
+                category: "IDS PROJECT",
+                description: "Creating RBI's Monetary Museum, Mumbai railway signage"
+            },
+            {
+                name: "Tamil Nadu, India",
+                lat: 11.1271,
+                lng: 78.6569,
+                programme: "Handloom Branding, Jute Clusters",
+                category: "IDS PROJECT",
+                description: "Design modernization for Tamil Nadu's handloom industry"
+            },
+            {
+                name: "Karnataka, India",
+                lat: 15.3173,
+                lng: 75.7139,
+                programme: "BMTC Bus Branding, IIM Bangalore Identity",
+                category: "IDS PROJECT",
+                description: "BMTC Bus branding and IIM Bangalore's visual identity"
+            },
+            {
+                name: "India",
+                lat: 20.5937,
+                lng: 78.9629,
+                programme: "Warship Ergonomics, DRDO Expandable Decoy System",
+                category: "IDS PROJECT",
+                description: "Ergonomic enhancements for warships and DRDO projects"
+            },
+            {
+                name: "India",
+                lat: 20.5937,
+                lng: 78.9629,
+                programme: "Train Coach Ergonomics, Track Tools Redesign",
+                category: "IDS PROJECT",
+                description: "Redesigning train coach ergonomics and railway track tools"
+            },
+            {
+                name: "India",
+                lat: 20.5937,
+                lng: 78.9629,
+                programme: "National Design Business Incubator (NDBI)",
+                category: "DESIGN ENTREPRENEURSHIP",
+                description: "Supports startups in design-led entrepreneurship, globally recognized for fostering design-driven innovation."
+            },
+            {
+                name: "Srinagar, India",
+                lat: 34.0837,
+                lng: 74.7973,
+                programme: "USTTAD Scheme of Ministry of Minority Affairs (MoMA), GoI",
+                year: "2016-2023",
+                category: "IDS PROJECT",
+                description: "Government initiative uplifting artisans, helping them modernize and sustain their crafts."
+            },
+            {
+                name: "Longpi, India",
+                lat: 25.1,
+                lng: 94.2,
+                programme: "USTTAD Scheme of Ministry of Minority Affairs (MoMA), GoI",
+                year: "2016-2023",
+                category: "IDS PROJECT",
+                description: "Government initiative uplifting artisans, helping them modernize and sustain their crafts."
+            },
+            {
+                name: "Kochi, India",
+                lat: 9.9312,
+                lng: 76.2673,
+                programme: "USTTAD Scheme of Ministry of Minority Affairs (MoMA), GoI",
+                year: "2016-2023",
+                category: "IDS PROJECT",
+                description: "Government initiative uplifting artisans, helping them modernize and sustain their crafts."
+            },
+            {
+                name: "Varanasi, India",
+                lat: 25.3176,
+                lng: 82.9739,
+                programme: "USTTAD Scheme of Ministry of Minority Affairs (MoMA), GoI",
+                year: "2016-2023",
+                category: "IDS PROJECT",
+                description: "Government initiative uplifting artisans, helping them modernize and sustain their crafts."
+            },
+            {
+                name: "Ferozabad, India",
+                lat: 27.1591,
+                lng: 78.3958,
+                programme: "USTTAD Scheme of Ministry of Minority Affairs (MoMA), GoI",
+                year: "2016-2023",
+                category: "IDS PROJECT",
+                description: "Government initiative uplifting artisans, helping them modernize and sustain their crafts."
+            },
+            {
+                name: "Bikaner, India",
+                lat: 28.0229,
+                lng: 73.3119,
+                programme: "USTTAD Scheme of Ministry of Minority Affairs (MoMA), GoI",
+                year: "2016-2023",
+                category: "IDS PROJECT",
+                description: "Government initiative uplifting artisans, helping them modernize and sustain their crafts."
+            },
+            {
+                name: "Nimmalakunta, India",
+                lat: 14.5,
+                lng: 77.5,
+                programme: "USTTAD Scheme of Ministry of Minority Affairs (MoMA), GoI",
+                year: "2016-2023",
+                category: "IDS PROJECT",
+                description: "Government initiative uplifting artisans, helping them modernize and sustain their crafts."
+            },
+            {
+                name: "Likir, India",
+                lat: 34.2833,
+                lng: 77.1167,
+                programme: "USTTAD Scheme of Ministry of Minority Affairs (MoMA), GoI",
+                year: "2016-2023",
+                category: "IDS PROJECT",
+                description: "Government initiative uplifting artisans, helping them modernize and sustain their crafts."
+            },
+            {
+                name: "Jandialaguru, India",
+                lat: 31.55,
+                lng: 75.0333,
+                programme: "USTTAD Scheme of Ministry of Minority Affairs (MoMA), GoI",
+                year: "2016-2023",
+                category: "IDS PROJECT",
+                description: "Government initiative uplifting artisans, helping them modernize and sustain their crafts."
+            },
+            {
+                name: "Panjim, India",
+                lat: 15.4909,
+                lng: 73.8278,
+                programme: "USTTAD Scheme of Ministry of Minority Affairs (MoMA), GoI",
+                year: "2016-2023",
+                category: "IDS PROJECT",
+                description: "Government initiative uplifting artisans, helping them modernize and sustain their crafts."
+            },
+            {
+                name: "India",
+                lat: 20.5937,
+                lng: 78.9629,
+                programme: "One District One Product (ODOP)",
+                year: 2023,
+                category: "IDS PROJECT",
+                description: "Encouraging unique local products in each district, supporting regional craft-based economies."
+            },
+            {
+                name: "North East India",
+                lat: 26.2006,
+                lng: 92.9376,
+                programme: "Textile Traditions of NE States of India",
+                year: "2012-2018",
+                category: "IDS PROJECT",
+                description: "Documentation project for IGNCA"
+            },
+            {
+                name: "USA",
+                lat: 37.0902,
+                lng: -95.7129,
+                programme: "GM- Partners for the Advancement of Collaborative Engineering Education (PACE) program",
+                year: "2008-2017",
+                category: "COLLABORATION"
+            },
+            {
+                name: "Jaipur, India",
+                lat: 26.9124,
+                lng: 75.7873,
+                programme: "Setting-up Craft and Design Institutes in India",
+                year: "2000s",
+                category: "INSTITUTION BUILDING",
+                description: "IICD JAIPUR, CDI SRINAGAR, BCDI AGARTALA, KSID KOCHI, Jharkand State Institute of Design Ranchi"
+            },
+            {
+                name: "Srinagar, India",
+                lat: 34.0837,
+                lng: 74.7973,
+                programme: "Setting-up Craft and Design Institutes in India",
+                year: "2000s",
+                category: "INSTITUTION BUILDING",
+                description: "IICD JAIPUR, CDI SRINAGAR, BCDI AGARTALA, KSID KOCHI, Jharkand State Institute of Design Ranchi"
+            },
+            {
+                name: "Agartala, India",
+                lat: 23.8315,
+                lng: 91.2868,
+                programme: "Setting-up Craft and Design Institutes in India",
+                year: "2000s",
+                category: "INSTITUTION BUILDING",
+                description: "IICD JAIPUR, CDI SRINAGAR, BCDI AGARTALA, KSID KOCHI, Jharkand State Institute of Design Ranchi"
+            },
+            {
+                name: "Kerala, India",
+                lat: 10.8505,
+                lng: 76.2711,
+                programme: "Setting-up Craft and Design Institutes in India",
+                year: "2000s",
+                category: "INSTITUTION BUILDING",
+                description: "IICD JAIPUR, CDI SRINAGAR, BCDI AGARTALA, KSID KOCHI, Jharkand State Institute of Design Ranchi"
+            },
+            {
+                name: "Jharkand, India",
+                lat: 23.6102,
+                lng: 85.2799,
+                programme: "Setting-up Craft and Design Institutes in India",
+                year: "2000s",
+                category: "INSTITUTION BUILDING",
+                description: "IICD JAIPUR, CDI SRINAGAR, BCDI AGARTALA, KSID KOCHI, Jharkand State Institute of Design Ranchi"
+            },
+            {
+                name: "Meghalaya, India",
+                lat: 25.467,
+                lng: 91.3662,
+                programme: "MOU with state of Meghalaya",
+                year: 2023,
+                category: "COLLABORATION"
+            },
+            {
+                name: "Sikkim, India",
+                lat: 27.533,
+                lng: 88.5122,
+                programme: "MOU with state of Sikkim",
+                year: 2024,
+                category: "COLLABORATION"
+            },
+            {
+                name: "Firozabad, India",
+                lat: 27.1591,
+                lng: 78.3958,
+                programme: "MOU with CDGI (Centre for Development of Glass Industries), Firozabad",
+                category: "RESEARCH"
+            },
+            {
+                name: "USA",
+                lat: 37.0902,
+                lng: -95.7129,
+                programme: "Ford Foundation & NID Establishment",
+                year: 1961,
+                category: "INSTITUTION BUILDING",
+                description: "Provided financial and technical support for NID's foundation; Commissioned the Eames Report (1958), shaping India's design education system."
+            },
+            {
+                name: "Berlin, Germany",
+                lat: 52.52,
+                lng: 13.405,
+                programme: "India Pavilion at Berlinale 2024",
+                year: 2024,
+                category: "IDS PROJECT",
+                description: "Design of India's Pavilion at Berlinale 2024, celebrating India's creative economy."
             },
             {
                 name: "London, UK",
                 lat: 51.5074,
                 lng: -0.1278,
-                description: "Historic capital of England, blending centuries-old architecture with modern culture."
+                programme: "Terra Carta Design Lab",
+                year: "2023-24",
+                category: "INT EXCHANGE",
+                description: "Partner with SMI, an initiative of King Charles of UK"
             },
             {
-                name: "Sydney, Australia",
-                lat: -33.8688,
-                lng: 151.2093,
-                description: "Australia's largest city, famous for its iconic Opera House and beautiful harbor."
+                name: "Qingdao, China",
+                lat: 36.0671,
+                lng: 120.3826,
+                programme: "TASA-ICoD International Design Education Laboratory",
+                year: 2024,
+                category: "INT EXCHANGE",
+                description: "Six weeks immersive experience for students and faculty, July-Aug 2024"
             },
             {
-                name: "Rio de Janeiro, Brazil",
-                lat: -22.9068,
-                lng: -43.1729,
-                description: "Vibrant Brazilian city known for its Carnival celebration and Christ the Redeemer statue."
+                name: "Aalto, Finland",
+                lat: 60.186,
+                lng: 24.828,
+                programme: "Aalto Summer School",
+                year: 2024,
+                category: "INT EXCHANGE",
+                description: "Multi- institute summer programme for faculty and students, 2024"
+            },
+            {
+                name: "Ahmedabad, India",
+                lat: 23.0225,
+                lng: 72.5714,
+                programme: "International Center for Indian Crafts (ICIC)",
+                year: "2000s",
+                category: "DESIGN PROMOTION"
+            },
+            {
+                name: "Ahmedabad, India",
+                lat: 23.0225,
+                lng: 72.5714,
+                programme: "UKRI-AHRC Research Project",
+                year: "2024-25",
+                category: "RESEARCH",
+                description: "Crafting a Sustainable Future: Empowering Indian Crafts in the Creative Industries, started in December 2024, Project Lead : Dr. Ketankumar Vadodaria"
+            },
+            {
+                name: "London, UK",
+                lat: 51.5074,
+                lng: -0.1278,
+                programme: "UKRI-AHRC Research Project",
+                year: "2024-25",
+                category: "RESEARCH",
+                description: "Crafting a Sustainable Future: Empowering Indian Crafts in the Creative Industries, started in December 2024, Project Lead : Dr. Ketankumar Vadodaria"
+            },
+            {
+                name: "Ahmedabad, India",
+                lat: 23.0225,
+                lng: 72.5714,
+                programme: "From Where I Stand Exhibition, 2023",
+                year: 2023,
+                category: "INT EXCHANGE",
+                description: "Future Flow Curatorial Fellowship for Students from NID and Scotland Universities by Edinburgh Print Labs, Flow India, and NID"
+            },
+            {
+                name: "Delhi, India",
+                lat: 28.7041,
+                lng: 77.1025,
+                programme: "From Where I Stand Exhibition, 2023",
+                year: 2023,
+                category: "INT EXCHANGE",
+                description: "Future Flow Curatorial Fellowship for Students from NID and Scotland Universities by Edinburgh Print Labs, Flow India, and NID"
+            },
+            {
+                name: "Edinburgh, Scotland",
+                lat: 55.9533,
+                lng: -3.1883,
+                programme: "From Where I Stand Exhibition, 2023",
+                year: 2023,
+                category: "INT EXCHANGE",
+                description: "Future Flow Curatorial Fellowship for Students from NID and Scotland Universities by Edinburgh Print Labs, Flow India, and NID"
             }
         ];
 
         // Add location markers
-        const markerGeometry = new THREE.SphereGeometry(0.1, 16, 16);
-        const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xFF0088 });
+        const markerGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+        const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xB4F033 });
         
         const markers = locations.map(location => {
             const marker = new THREE.Mesh(markerGeometry, markerMaterial);
@@ -140,59 +810,24 @@
             return new THREE.Vector3(x, y, z);
         }
 
-        // Handle both mouse and touch events
+        // Handle click events
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
-        function handlePointerDown(event) {
-            event.preventDefault();
-            isDragging = true;
-            const pointer = event.touches ? event.touches[0] : event;
-            previousMousePosition.x = pointer.clientX;
-            previousMousePosition.y = pointer.clientY;
-        }
-
-        function handlePointerMove(event) {
-            event.preventDefault();
-            const pointer = event.touches ? event.touches[0] : event;
-            
-            if (isDragging) {
-                const deltaMove = {
-                    x: pointer.clientX - previousMousePosition.x,
-                    y: pointer.clientY - previousMousePosition.y
-                };
-
-                globe.rotation.y += deltaMove.x * 0.005;
-                globe.rotation.x += deltaMove.y * 0.005;
-            }
-
-            previousMousePosition.x = pointer.clientX;
-            previousMousePosition.y = pointer.clientY;
-        }
-
-        function handlePointerUp(event) {
-            event.preventDefault();
-            isDragging = false;
-        }
-
-        function handleTap(event) {
-            event.preventDefault();
-            const pointer = event.touches ? event.touches[0] : event;
-            const rect = renderer.domElement.getBoundingClientRect();
-            
-            mouse.x = ((pointer.clientX - rect.left) / rect.width) * 2 - 1;
-            mouse.y = -((pointer.clientY - rect.top) / rect.height) * 2 + 1;
+        window.addEventListener('click', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(markers);
 
             if (intersects.length > 0) {
                 const location = intersects[0].object.userData;
-                showLocationCard(location, pointer.clientX, pointer.clientY);
+                showLocationCard(location, event.clientX, event.clientY);
             } else {
                 hideLocationCard();
             }
-        }
+        });
 
         // Add drag rotation
         let isDragging = false;
@@ -201,31 +836,41 @@
             y: 0
         };
 
-        // Add event listeners for both mouse and touch
-        renderer.domElement.addEventListener('mousedown', handlePointerDown);
-        renderer.domElement.addEventListener('mousemove', handlePointerMove);
-        renderer.domElement.addEventListener('mouseup', handlePointerUp);
-        renderer.domElement.addEventListener('click', handleTap);
+        document.addEventListener('mousedown', (e) => {
+            isDragging = true;
+        });
 
-        renderer.domElement.addEventListener('touchstart', handlePointerDown);
-        renderer.domElement.addEventListener('touchmove', handlePointerMove);
-        renderer.domElement.addEventListener('touchend', handlePointerUp);
-        renderer.domElement.addEventListener('touchstart', handleTap);
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaMove = {
+                    x: e.clientX - previousMousePosition.x,
+                    y: e.clientY - previousMousePosition.y
+                };
 
-        // Show/hide location card with smooth animation
+                globe.rotation.y += deltaMove.x * 0.005;
+                globe.rotation.x += deltaMove.y * 0.005;
+            }
+
+            previousMousePosition = {
+                x: e.clientX,
+                y: e.clientY
+            };
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            isDragging = false;
+        });
+
+        // Show/hide location card
         function showLocationCard(location, x, y) {
             const card = document.getElementById('location-card');
-            document.getElementById('location-title').textContent = location.name;
+            document.getElementById('location-title').textContent = `${location.programme} - ${location.name}`;
+            document.getElementById('location-category').textContent = location.category;
+            document.getElementById('location-year').textContent = location.year;
             document.getElementById('location-description').textContent = location.description;
-            
-            // For mobile, position card at bottom
-            if (window.innerWidth <= 768) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'block';
-                card.style.left = `${x + 10}px`;
-                card.style.top = `${y + 10}px`;
-            }
+            card.style.display = 'block';
+            card.style.left = `${x + 10}px`;
+            card.style.top = `${y + 10}px`;
         }
 
         function hideLocationCard() {
@@ -238,19 +883,17 @@
             if (!isDragging) {
                 globe.rotation.y += 0.0005;
             }
+            stars.rotation.y += 0.0001;
             renderer.render(scene, camera);
         }
         animate();
 
         // Handle window resize
-        function onWindowResize() {
+        window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        window.addEventListener('resize', onWindowResize);
-        window.addEventListener('orientationchange', onWindowResize);
+        });
     </script>
 </body>
 </html>
