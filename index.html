@@ -3,10 +3,12 @@
 <head>
     <title>3D Globe Visualization</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body {
             margin: 0;
             overflow: hidden;
+            touch-action: none; /* Prevent default touch behaviors */
         }
         #globe-container {
             width: 100%;
@@ -23,6 +25,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             max-width: 300px;
             z-index: 1000;
+            touch-action: none;
         }
 
         .location-card h3 {
@@ -44,6 +47,15 @@
         .location-card .year {
             font-style: italic;
             color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .location-card {
+                max-width: 80%;
+                left: 50% !important;
+                transform: translateX(-50%);
+                bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -398,102 +410,12 @@
             },
             {
                 name: "France",
-                lat: 46.6034,
-                lng: 1.8883,
-                programme: "Exhibition of French Maps & Drawings",
-                category: "EXHIBITION",
-                description: "Cultural and historical Indo-French design project"
-            },
-            {
-                name: "Thailand",
-                lat: 15.87,
-                lng: 100.9925,
-                programme: "NID-ENSCI-KMUTT Summer Workshop",
-                year: 2024,
-                category: "INT EXCHANGE",
-                description: "International cross-cultural design education"
-            },
-            {
-                name: "Bangladesh",
-                lat: 23.685,
-                lng: 90.3563,
-                programme: "Jute Textile Promotion",
-                category: "IDS PROJECT",
-                description: "Sustainable design interventions in traditional jute craft"
-            },
-            {
-                name: "Bhutan",
-                lat: 27.5142,
-                lng: 90.4336,
-                programme: "Jute Textile Promotion",
-                category: "IDS PROJECT",
-                description: "Sustainable design interventions in traditional jute craft"
-            },
-            {
-                name: "Delhi, India",
-                lat: 28.7041,
-                lng: 77.1025,
-                programme: "Polling Booth Identity, BrahMos Branding",
-                category: "IDS PROJECT",
-                description: "Election Commission Booth Identity, BrahMos Aerospace Branding"
-            },
-            {
-                name: "Uttar Pradesh, India",
-                lat: 26.8467,
-                lng: 80.9462,
-                programme: "Lucknow Design Institute, Monorail Branding",
-                category: "IDS PROJECT",
-                description: "Design curriculum for Lucknow Design Institute, Monorail Branding"
-            },
-            {
-                name: "Gujarat, India",
-                lat: 22.2587,
-                lng: 71.1924,
-                programme: "Ahmedabad BRTS Branding, Amul Kiosk & Packaging",
-                year: 2010,
-                category: "IDS PROJECT",
-                description: "Branding Ahmedabad's BRTS, designing Amul packaging"
-            },
-            {
-                name: "Maharashtra, India",
-                lat: 19.7515,
-                lng: 75.7139,
-                programme: "RBI Monetary Museum, Mumbai Railway Scheme",
-                year: 2006,
-                category: "IDS PROJECT",
-                description: "Creating RBI's Monetary Museum, Mumbai railway signage"
-            },
-            {
-                name: "Tamil Nadu, India",
-                lat: 11.1271,
-                lng: 78.6569,
-                programme: "Handloom Branding, Jute Clusters",
-                category: "IDS PROJECT",
-                description: "Design modernization for Tamil Nadu's handloom industry"
-            },
-            {
-                name: "Karnataka, India",
-                lat: 15.3173,
-                lng: 75.7139,
-                programme: "BMTC Bus Branding, IIM Bangalore Identity",
-                category: "IDS PROJECT",
-                description: "BMTC Bus branding and IIM Bangalore's visual identity"
-            },
-            {
-                name: "India",
-                lat: 20.5937,
-                lng: 78.9629,
-                programme: "Warship Ergonomics, DRDO Expandable Decoy System",
-                category: "IDS PROJECT",
-                description: "Ergonomic enhancements for warships and DRDO projects"
-            },
-            {
-                name: "India",
-                lat: 20.5937,
-                lng: 78.9629,
-                programme: "Train Coach Ergonomics, Track Tools Redesign",
-                category: "IDS PROJECT",
-                description: "Redesigning train coach ergonomics and railway track tools"
+                lat: 46.2276,
+                lng: 2.2137,
+                programme: "India Design Mark (I-Mark)",
+                year: 2012,
+                category: "COLLABORATION",
+                description: "Certifying Indian industrial designs, in cooperation with Japan Institute of Design Promotion (JDP)"
             },
             {
                 name: "India",
@@ -810,63 +732,89 @@
             return new THREE.Vector3(x, y, z);
         }
 
-        // Handle click/touch events
+        // Touch and mouse interaction handling
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
-
-        function handleInteraction(event) {
-            // Get coordinates from mouse or touch event
-            const x = event.clientX || event.touches[0].clientX;
-            const y = event.clientY || event.touches[0].clientY;
-
-            mouse.x = (x / window.innerWidth) * 2 - 1;
-            mouse.y = -(y / window.innerHeight) * 2 + 1;
-
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(markers);
-
-            if (intersects.length > 0) {
-                const location = intersects[0].object.userData;
-                showLocationCard(location, x, y);
-            } else {
-                hideLocationCard();
-            }
-        }
-
-        window.addEventListener('click', handleInteraction);
-        window.addEventListener('touchstart', handleInteraction);
-
-        // Add drag/touch rotation
         let isDragging = false;
         let previousPosition = {
             x: 0,
             y: 0
         };
 
-        document.addEventListener('mousedown', (e) => {
-            isDragging = true;
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                const deltaMove = {
-                    x: e.clientX - previousMousePosition.x,
-                    y: e.clientY - previousMousePosition.y
-                };
-
-                globe.rotation.y += deltaMove.x * 0.005;
-                globe.rotation.x += deltaMove.y * 0.005;
-            }
-
-            previousMousePosition = {
-                x: e.clientX,
-                y: e.clientY
+        function getEventCoords(event) {
+            const coords = {
+                x: event.clientX || (event.touches ? event.touches[0].clientX : 0),
+                y: event.clientY || (event.touches ? event.touches[0].clientY : 0)
             };
-        });
+            return coords;
+        }
 
-        document.addEventListener('mouseup', (e) => {
+        function handleStart(event) {
+            event.preventDefault();
+            isDragging = true;
+            const coords = getEventCoords(event);
+            previousPosition.x = coords.x;
+            previousPosition.y = coords.y;
+        }
+
+        function handleMove(event) {
+            event.preventDefault();
+            if (!isDragging) return;
+
+            const coords = getEventCoords(event);
+            const deltaMove = {
+                x: coords.x - previousPosition.x,
+                y: coords.y - previousPosition.y
+            };
+
+            globe.rotation.y += deltaMove.x * 0.005;
+            globe.rotation.x += deltaMove.y * 0.005;
+
+            previousPosition.x = coords.x;
+            previousPosition.y = coords.y;
+        }
+
+        function handleEnd(event) {
+            event.preventDefault();
+            if (!isDragging) return;
+            
             isDragging = false;
-        });
+            
+            // Check for marker clicks/taps only if there was minimal movement
+            const coords = getEventCoords(event.changedTouches ? event.changedTouches[0] : event);
+            const movementThreshold = 5;
+            
+            if (Math.abs(coords.x - previousPosition.x) < movementThreshold && 
+                Math.abs(coords.y - previousPosition.y) < movementThreshold) {
+                
+                mouse.x = (coords.x / window.innerWidth) * 2 - 1;
+                mouse.y = -(coords.y / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(markers);
+
+                if (intersects.length > 0) {
+                    const location = intersects[0].object.userData;
+                    showLocationCard(location, coords.x, coords.y);
+                } else {
+                    hideLocationCard();
+                }
+            }
+        }
+
+        // Add touch and mouse event listeners
+        const container = document.getElementById('globe-container');
+        
+        // Touch events
+        container.addEventListener('touchstart', handleStart, { passive: false });
+        container.addEventListener('touchmove', handleMove, { passive: false });
+        container.addEventListener('touchend', handleEnd, { passive: false });
+        
+        // Mouse events
+        container.addEventListener('mousedown', handleStart);
+        container.addEventListener('mousemove', handleMove);
+        container.addEventListener('mouseup', handleEnd);
+        container.addEventListener('mouseleave', () => isDragging = false);
 
         // Show/hide location card
         function showLocationCard(location, x, y) {
@@ -876,8 +824,16 @@
             document.getElementById('location-year').textContent = location.year;
             document.getElementById('location-description').textContent = location.description;
             card.style.display = 'block';
-            card.style.left = `${x + 10}px`;
-            card.style.top = `${y + 10}px`;
+            
+            // Adjust card position for mobile
+            if (window.innerWidth <= 768) {
+                card.style.left = '50%';
+                card.style.bottom = '20px';
+                card.style.top = 'auto';
+            } else {
+                card.style.left = `${x + 10}px`;
+                card.style.top = `${y + 10}px`;
+            }
         }
 
         function hideLocationCard() {
