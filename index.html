@@ -3,11 +3,12 @@
 <head>
     <title>3D Globe Visualization</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        
         body {
             margin: 0;
             overflow: hidden;
+            touch-action: none; /* Prevent default touch behaviors */
         }
         #globe-container {
             width: 100%;
@@ -24,6 +25,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             max-width: 300px;
             z-index: 1000;
+            touch-action: none;
         }
 
         .location-card h3 {
@@ -34,6 +36,15 @@
         .location-card p {
             color: #333;
             line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .location-card {
+                max-width: 80%;
+                left: 50% !important;
+                transform: translateX(-50%);
+                bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -115,7 +126,7 @@
             const position = latLngToVector3(location.lat, location.lng, radius);
             marker.position.copy(position);
             marker.userData = location;
-            globe.add(marker); // Add marker as child of globe instead of scene
+            globe.add(marker);
             return marker;
         });
 
@@ -129,24 +140,59 @@
             return new THREE.Vector3(x, y, z);
         }
 
-        // Handle click events
+        // Handle both mouse and touch events
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
-        window.addEventListener('click', (event) => {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        function handlePointerDown(event) {
+            event.preventDefault();
+            isDragging = true;
+            const pointer = event.touches ? event.touches[0] : event;
+            previousMousePosition.x = pointer.clientX;
+            previousMousePosition.y = pointer.clientY;
+        }
+
+        function handlePointerMove(event) {
+            event.preventDefault();
+            const pointer = event.touches ? event.touches[0] : event;
+            
+            if (isDragging) {
+                const deltaMove = {
+                    x: pointer.clientX - previousMousePosition.x,
+                    y: pointer.clientY - previousMousePosition.y
+                };
+
+                globe.rotation.y += deltaMove.x * 0.005;
+                globe.rotation.x += deltaMove.y * 0.005;
+            }
+
+            previousMousePosition.x = pointer.clientX;
+            previousMousePosition.y = pointer.clientY;
+        }
+
+        function handlePointerUp(event) {
+            event.preventDefault();
+            isDragging = false;
+        }
+
+        function handleTap(event) {
+            event.preventDefault();
+            const pointer = event.touches ? event.touches[0] : event;
+            const rect = renderer.domElement.getBoundingClientRect();
+            
+            mouse.x = ((pointer.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((pointer.clientY - rect.top) / rect.height) * 2 + 1;
 
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(markers);
 
             if (intersects.length > 0) {
                 const location = intersects[0].object.userData;
-                showLocationCard(location, event.clientX, event.clientY);
+                showLocationCard(location, pointer.clientX, pointer.clientY);
             } else {
                 hideLocationCard();
             }
-        });
+        }
 
         // Add drag rotation
         let isDragging = false;
@@ -155,39 +201,31 @@
             y: 0
         };
 
-        document.addEventListener('mousedown', (e) => {
-            isDragging = true;
-        });
+        // Add event listeners for both mouse and touch
+        renderer.domElement.addEventListener('mousedown', handlePointerDown);
+        renderer.domElement.addEventListener('mousemove', handlePointerMove);
+        renderer.domElement.addEventListener('mouseup', handlePointerUp);
+        renderer.domElement.addEventListener('click', handleTap);
 
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                const deltaMove = {
-                    x: e.clientX - previousMousePosition.x,
-                    y: e.clientY - previousMousePosition.y
-                };
+        renderer.domElement.addEventListener('touchstart', handlePointerDown);
+        renderer.domElement.addEventListener('touchmove', handlePointerMove);
+        renderer.domElement.addEventListener('touchend', handlePointerUp);
+        renderer.domElement.addEventListener('touchstart', handleTap);
 
-                globe.rotation.y += deltaMove.x * 0.005;
-                globe.rotation.x += deltaMove.y * 0.005;
-            }
-
-            previousMousePosition = {
-                x: e.clientX,
-                y: e.clientY
-            };
-        });
-
-        document.addEventListener('mouseup', (e) => {
-            isDragging = false;
-        });
-
-        // Show/hide location card
+        // Show/hide location card with smooth animation
         function showLocationCard(location, x, y) {
             const card = document.getElementById('location-card');
             document.getElementById('location-title').textContent = location.name;
             document.getElementById('location-description').textContent = location.description;
-            card.style.display = 'block';
-            card.style.left = `${x + 10}px`;
-            card.style.top = `${y + 10}px`;
+            
+            // For mobile, position card at bottom
+            if (window.innerWidth <= 768) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'block';
+                card.style.left = `${x + 10}px`;
+                card.style.top = `${y + 10}px`;
+            }
         }
 
         function hideLocationCard() {
@@ -205,11 +243,14 @@
         animate();
 
         // Handle window resize
-        window.addEventListener('resize', () => {
+        function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        }
+
+        window.addEventListener('resize', onWindowResize);
+        window.addEventListener('orientationchange', onWindowResize);
     </script>
 </body>
 </html>
