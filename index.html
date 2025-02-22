@@ -123,7 +123,7 @@
 
         // Location data
         const locations = [
-            {
+        {
                 name: "Shandong, China",
                 lat: 36.3427,
                 lng: 118.1498,
@@ -410,12 +410,102 @@
             },
             {
                 name: "France",
-                lat: 46.2276,
-                lng: 2.2137,
-                programme: "India Design Mark (I-Mark)",
-                year: 2012,
-                category: "COLLABORATION",
-                description: "Certifying Indian industrial designs, in cooperation with Japan Institute of Design Promotion (JDP)"
+                lat: 46.6034,
+                lng: 1.8883,
+                programme: "Exhibition of French Maps & Drawings",
+                category: "EXHIBITION",
+                description: "Cultural and historical Indo-French design project"
+            },
+            {
+                name: "Thailand",
+                lat: 15.87,
+                lng: 100.9925,
+                programme: "NID-ENSCI-KMUTT Summer Workshop",
+                year: 2024,
+                category: "INT EXCHANGE",
+                description: "International cross-cultural design education"
+            },
+            {
+                name: "Bangladesh",
+                lat: 23.685,
+                lng: 90.3563,
+                programme: "Jute Textile Promotion",
+                category: "IDS PROJECT",
+                description: "Sustainable design interventions in traditional jute craft"
+            },
+            {
+                name: "Bhutan",
+                lat: 27.5142,
+                lng: 90.4336,
+                programme: "Jute Textile Promotion",
+                category: "IDS PROJECT",
+                description: "Sustainable design interventions in traditional jute craft"
+            },
+            {
+                name: "Delhi, India",
+                lat: 28.7041,
+                lng: 77.1025,
+                programme: "Polling Booth Identity, BrahMos Branding",
+                category: "IDS PROJECT",
+                description: "Election Commission Booth Identity, BrahMos Aerospace Branding"
+            },
+            {
+                name: "Uttar Pradesh, India",
+                lat: 26.8467,
+                lng: 80.9462,
+                programme: "Lucknow Design Institute, Monorail Branding",
+                category: "IDS PROJECT",
+                description: "Design curriculum for Lucknow Design Institute, Monorail Branding"
+            },
+            {
+                name: "Gujarat, India",
+                lat: 22.2587,
+                lng: 71.1924,
+                programme: "Ahmedabad BRTS Branding, Amul Kiosk & Packaging",
+                year: 2010,
+                category: "IDS PROJECT",
+                description: "Branding Ahmedabad's BRTS, designing Amul packaging"
+            },
+            {
+                name: "Maharashtra, India",
+                lat: 19.7515,
+                lng: 75.7139,
+                programme: "RBI Monetary Museum, Mumbai Railway Scheme",
+                year: 2006,
+                category: "IDS PROJECT",
+                description: "Creating RBI's Monetary Museum, Mumbai railway signage"
+            },
+            {
+                name: "Tamil Nadu, India",
+                lat: 11.1271,
+                lng: 78.6569,
+                programme: "Handloom Branding, Jute Clusters",
+                category: "IDS PROJECT",
+                description: "Design modernization for Tamil Nadu's handloom industry"
+            },
+            {
+                name: "Karnataka, India",
+                lat: 15.3173,
+                lng: 75.7139,
+                programme: "BMTC Bus Branding, IIM Bangalore Identity",
+                category: "IDS PROJECT",
+                description: "BMTC Bus branding and IIM Bangalore's visual identity"
+            },
+            {
+                name: "India",
+                lat: 20.5937,
+                lng: 78.9629,
+                programme: "Warship Ergonomics, DRDO Expandable Decoy System",
+                category: "IDS PROJECT",
+                description: "Ergonomic enhancements for warships and DRDO projects"
+            },
+            {
+                name: "India",
+                lat: 20.5937,
+                lng: 78.9629,
+                programme: "Train Coach Ergonomics, Track Tools Redesign",
+                category: "IDS PROJECT",
+                description: "Redesigning train coach ergonomics and railway track tools"
             },
             {
                 name: "India",
@@ -740,6 +830,10 @@
             x: 0,
             y: 0
         };
+        let rotationSpeed = {
+            x: 0,
+            y: 0
+        };
 
         function getEventCoords(event) {
             const coords = {
@@ -755,6 +849,8 @@
             const coords = getEventCoords(event);
             previousPosition.x = coords.x;
             previousPosition.y = coords.y;
+            rotationSpeed.x = 0;
+            rotationSpeed.y = 0;
         }
 
         function handleMove(event) {
@@ -767,8 +863,11 @@
                 y: coords.y - previousPosition.y
             };
 
-            globe.rotation.y += deltaMove.x * 0.005;
-            globe.rotation.x += deltaMove.y * 0.005;
+            rotationSpeed.x = deltaMove.x * 0.005;
+            rotationSpeed.y = deltaMove.y * 0.005;
+
+            globe.rotation.y += rotationSpeed.x;
+            globe.rotation.x += rotationSpeed.y;
 
             previousPosition.x = coords.x;
             previousPosition.y = coords.y;
@@ -814,7 +913,9 @@
         container.addEventListener('mousedown', handleStart);
         container.addEventListener('mousemove', handleMove);
         container.addEventListener('mouseup', handleEnd);
-        container.addEventListener('mouseleave', () => isDragging = false);
+        container.addEventListener('mouseleave', () => {
+            isDragging = false;
+        });
 
         // Show/hide location card
         function showLocationCard(location, x, y) {
@@ -840,12 +941,23 @@
             document.getElementById('location-card').style.display = 'none';
         }
 
-        // Animation loop
+        // Animation loop with momentum
         function animate() {
             requestAnimationFrame(animate);
+            
             if (!isDragging) {
-                globe.rotation.y += 0.0007;
+                // Apply momentum and gradually slow down
+                globe.rotation.y += rotationSpeed.x * 0.98;
+                globe.rotation.x += rotationSpeed.y * 0.98;
+                rotationSpeed.x *= 0.98;
+                rotationSpeed.y *= 0.98;
+                
+                // If speed is very low, add slight constant rotation
+                if (Math.abs(rotationSpeed.x) < 0.0007 && Math.abs(rotationSpeed.y) < 0.0007) {
+                    globe.rotation.y += 0.0007;
+                }
             }
+            
             stars.rotation.y += 0.0001;
             renderer.render(scene, camera);
         }
