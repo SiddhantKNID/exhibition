@@ -810,28 +810,35 @@
             return new THREE.Vector3(x, y, z);
         }
 
-        // Handle click events
+        // Handle click/touch events
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
-        window.addEventListener('click', (event) => {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        function handleInteraction(event) {
+            // Get coordinates from mouse or touch event
+            const x = event.clientX || event.touches[0].clientX;
+            const y = event.clientY || event.touches[0].clientY;
+
+            mouse.x = (x / window.innerWidth) * 2 - 1;
+            mouse.y = -(y / window.innerHeight) * 2 + 1;
 
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(markers);
 
             if (intersects.length > 0) {
                 const location = intersects[0].object.userData;
-                showLocationCard(location, event.clientX, event.clientY);
+                showLocationCard(location, x, y);
             } else {
                 hideLocationCard();
             }
-        });
+        }
 
-        // Add drag rotation
+        window.addEventListener('click', handleInteraction);
+        window.addEventListener('touchstart', handleInteraction);
+
+        // Add drag/touch rotation
         let isDragging = false;
-        let previousMousePosition = {
+        let previousPosition = {
             x: 0,
             y: 0
         };
@@ -881,7 +888,7 @@
         function animate() {
             requestAnimationFrame(animate);
             if (!isDragging) {
-                globe.rotation.y += 0.0005;
+                globe.rotation.y += 0.0007;
             }
             stars.rotation.y += 0.0001;
             renderer.render(scene, camera);
