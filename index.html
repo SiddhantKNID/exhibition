@@ -3,6 +3,7 @@
 <head>
     <title>3D Globe Visualization</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anek+Devanagari:wght@100;200;300;400;500;600;700;800&display=swap">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body {
@@ -60,7 +61,8 @@
     </style>
 </head>
 <body>
-    <div id="globe-container"></div>
+    <div id="globe-container"> 
+    </div>
     <div id="location-card" class="location-card">
         <h3 id="location-title"></h3>
         <p id="location-category" class="category"></p>
@@ -71,16 +73,80 @@
     <script>
         // Initialize Three.js scene
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xf4f4f4);
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        scene.background = new THREE.Color(0xEEEEEE);
+        const camera = new THREE.PerspectiveCamera(77, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('globe-container').appendChild(renderer.domElement);
 
+        // Add title text
+        const titleDiv = document.createElement('div');
+        titleDiv.style.position = 'absolute';
+        titleDiv.style.top = '120px';
+        titleDiv.style.left = '45px';
+        titleDiv.style.color = '#626262';
+        titleDiv.style.fontSize = '40px';
+        titleDiv.style.width = '240px';
+        titleDiv.style.lineHeight = '50px';
+        titleDiv.style.fontFamily = 'Anek Devanagari';
+        titleDiv.style.fontWeight = 'Medium';
+        titleDiv.innerHTML = "NID's Reach & Collaborations";
+        document.body.appendChild(titleDiv);
+
+        // Add legend
+        const legendDiv = document.createElement('div');
+        legendDiv.style.position = 'absolute';
+        legendDiv.style.top = '250px';
+        legendDiv.style.left = '30px';
+        legendDiv.style.padding = '15px';
+        legendDiv.style.fontSize = '18px';
+        legendDiv.style.backgroundColor = 'none';
+        legendDiv.style.fontFamily = 'Anek Devanagari';
+        legendDiv.style.fontWeight = 'Medium';
+
+        const categories = [
+            { name: 'Conference', color: '#AE2079' },
+            { name: 'International Exchange', color: '#127C9C' },
+            { name: 'Exhibition', color: '#53419A' },
+            { name: 'IDS Project', color: '#DB2044' },
+            { name: 'Research', color: '#EAC300' },
+            { name: 'Collaboration', color: '#F37424' },
+            { name: 'Design Entrepreneurship', color: '#2920AE' },
+            { name: 'Institution Building', color: '#78AE20' },
+            { name: 'Design Promotion', color: '#20AE8D' }
+        ];
+
+        categories.forEach(category => {
+            const item = document.createElement('div');
+            item.style.marginBottom = '8px';
+            item.style.display = 'flex';
+            item.style.alignItems = 'center';
+            
+            const colorBox = document.createElement('span');
+            colorBox.style.width = '12px';
+            colorBox.style.height = '12px';
+            colorBox.style.backgroundColor = category.color;
+            colorBox.style.display = 'inline-block';
+            colorBox.style.borderRadius = '50%';
+            colorBox.style.marginRight = '8px';
+
+            const text = document.createElement('span');
+            text.textContent = category.name;
+            text.style.color = '#626262';
+            text.style.fontSize = '18px';
+
+            item.appendChild(colorBox);
+            item.appendChild(text);
+            legendDiv.appendChild(item);
+        });
+
+        document.body.appendChild(legendDiv);
+        
+        
         // Create stars
         const starsGeometry = new THREE.BufferGeometry();
         const starsMaterial = new THREE.PointsMaterial({
-            color: 0xFFFFFF,
+            color: 0x000000,
             size: 0.1
         });
 
@@ -97,7 +163,7 @@
         scene.add(stars);
 
         // Create globe
-        const radius = 5;
+        const radius = 5.3;
         const segments = 64;
         const geometry = new THREE.SphereGeometry(radius, segments, segments);
         const textureLoader = new THREE.TextureLoader();
@@ -701,7 +767,7 @@
             },
             {
                 name: "USA",
-                lat: 37.0902,
+                lat: 42.0902,
                 lng: -95.7129,
                 programme: "Ford Foundation & NID Establishment",
                 year: 1961,
@@ -719,7 +785,7 @@
             },
             {
                 name: "London, UK",
-                lat: 51.5074,
+                lat: 52.5074,
                 lng: -0.1278,
                 programme: "Terra Carta Design Lab",
                 year: "2023-24",
@@ -797,13 +863,31 @@
                 category: "INT EXCHANGE",
                 description: "Future Flow Curatorial Fellowship for Students from NID and Scotland Universities by Edinburgh Print Labs, Flow India, and NID"
             }
+            
+            // ... [rest of the locations array remains unchanged]
+            
         ];
 
+        // Category colors mapping
+        const categoryColors = {
+            'INT EXCHANGE': '#127C9C',
+            'EXHIBITION': '#53419A',
+            'IDS PROJECT': '#DB2044',
+            'CONFERENCE': '#AE2079',
+            'RESEARCH': '#EAC300',
+            'COLLABORATION': '#F37424',
+            'DESIGN ENTREPRENEURSHIP': '#2920AE',
+            'INSTITUTION BUILDING': '#78AE20',
+            'DESIGN PROMOTION': '#20AE8D'
+        };
+
         // Add location markers
-        const markerGeometry = new THREE.SphereGeometry(0.05, 16, 16);
-        const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xB4F033 });
+        const markerGeometry = new THREE.SphereGeometry(0.07, 16, 16);
         
         const markers = locations.map(location => {
+            const markerMaterial = new THREE.MeshBasicMaterial({ 
+                color: categoryColors[location.category] || 0xB4F033 
+            });
             const marker = new THREE.Mesh(markerGeometry, markerMaterial);
             const position = latLngToVector3(location.lat, location.lng, radius);
             marker.position.copy(position);
@@ -863,8 +947,8 @@
                 y: coords.y - previousPosition.y
             };
 
-            rotationSpeed.x = deltaMove.x * 0.005;
-            rotationSpeed.y = deltaMove.y * 0.005;
+            rotationSpeed.x = deltaMove.x * 0.002;
+            rotationSpeed.y = deltaMove.y * 0.002;
 
             globe.rotation.y += rotationSpeed.x;
             globe.rotation.x += rotationSpeed.y;
@@ -920,8 +1004,15 @@
         // Show/hide location card
         function showLocationCard(location, x, y) {
             const card = document.getElementById('location-card');
-            document.getElementById('location-title').textContent = `${location.programme} - ${location.name}`;
-            document.getElementById('location-category').textContent = location.category;
+            const title = document.getElementById('location-title');
+            const category = document.getElementById('location-category');
+            
+            title.textContent = `${location.programme} - ${location.name}`;
+            title.style.color = categoryColors[location.category] || '#02814D';
+            
+            category.textContent = location.category;
+            category.style.color = categoryColors[location.category] || '#127c9c';
+            
             document.getElementById('location-year').textContent = location.year;
             document.getElementById('location-description').textContent = location.description;
             card.style.display = 'block';
@@ -947,14 +1038,14 @@
             
             if (!isDragging) {
                 // Apply momentum and gradually slow down
-                globe.rotation.y += rotationSpeed.x * 0.98;
-                globe.rotation.x += rotationSpeed.y * 0.98;
-                rotationSpeed.x *= 0.98;
-                rotationSpeed.y *= 0.98;
+                globe.rotation.y += rotationSpeed.x * 0.50;
+                globe.rotation.x += rotationSpeed.y * 0.50;
+                rotationSpeed.x *= 0.50;
+                rotationSpeed.y *= 0.50;
                 
                 // If speed is very low, add slight constant rotation
-                if (Math.abs(rotationSpeed.x) < 0.0007 && Math.abs(rotationSpeed.y) < 0.0007) {
-                    globe.rotation.y += 0.0007;
+                if (Math.abs(rotationSpeed.x) < 0.0002 && Math.abs(rotationSpeed.y) < 0.0003) {
+                    globe.rotation.y += 0.0002;
                 }
             }
             
