@@ -43,11 +43,29 @@
         .location-card .category {
             font-weight: bold;
             color: #127c9c;
+            font-family: 'Anek Devanagari';
+            font-weight: 400;
+            font-size: 16px;
         }
 
         .location-card .year {
-            font-style: italic;
+            font-family: 'Anek Devanagari';
             color: #666;
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        #location-title{
+            font-family: 'Anek Devanagari';
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        #location-description{
+            font-family: 'Anek Devanagari';
+            color: #8B8B8B;
+            font-size: 16px;
+            font-weight: 400;
         }
 
         @media (max-width: 768px) {
@@ -167,7 +185,7 @@
         const segments = 64;
         const geometry = new THREE.SphereGeometry(radius, segments, segments);
         const textureLoader = new THREE.TextureLoader();
-        const texture = textureLoader.load('./Assets/img/LargeLight.jpg');
+        const texture = textureLoader.load('./Assets/img/light.jpg');
         const material = new THREE.MeshPhongMaterial({ map: texture });
         const globe = new THREE.Mesh(geometry, material);
         scene.add(globe);
@@ -882,7 +900,7 @@
         };
 
         // Add location markers
-        const markerGeometry = new THREE.SphereGeometry(0.02, 16, 16);
+        const markerGeometry = new THREE.SphereGeometry(0.05, 16, 16);
         
         const markers = locations.map(location => {
             const markerMaterial = new THREE.MeshBasicMaterial({ 
