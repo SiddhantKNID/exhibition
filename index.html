@@ -167,7 +167,7 @@
         const segments = 64;
         const geometry = new THREE.SphereGeometry(radius, segments, segments);
         const textureLoader = new THREE.TextureLoader();
-        const texture = textureLoader.load('./Assets/img/light.jpg');
+        const texture = textureLoader.load('./Assets/img/LargeLight.jpg');
         const material = new THREE.MeshPhongMaterial({ map: texture });
         const globe = new THREE.Mesh(geometry, material);
         scene.add(globe);
@@ -882,7 +882,7 @@
         };
 
         // Add location markers
-        const markerGeometry = new THREE.SphereGeometry(0.07, 16, 16);
+        const markerGeometry = new THREE.SphereGeometry(0.02, 16, 16);
         
         const markers = locations.map(location => {
             const markerMaterial = new THREE.MeshBasicMaterial({ 
