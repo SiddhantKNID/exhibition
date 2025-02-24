@@ -20,10 +20,10 @@
         .location-card {
             display: none;
             position: absolute;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255);
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
             max-width: 300px;
             z-index: 1000;
             touch-action: none;
@@ -160,6 +160,18 @@
 
         document.body.appendChild(legendDiv);
         
+        // Add credits
+        const creditsDiv = document.createElement('div');
+        creditsDiv.style.position = 'absolute';
+        creditsDiv.style.bottom = '20px';
+        creditsDiv.style.right = '20px';
+        creditsDiv.style.padding = '10px';
+        creditsDiv.style.fontSize = '12px';
+        creditsDiv.style.fontFamily = 'Anek Devanagari';
+        creditsDiv.style.color = '#626262';
+        creditsDiv.style.textAlign = 'left';
+        creditsDiv.innerHTML = 'Created by <br> Siddhant Kapadne INFD-23 <br> Madhavi Sharma INFD-23 <br> Dhruvrajsinh jadeja EDUG-22';
+        document.body.appendChild(creditsDiv);
         
         // Create stars
         const starsGeometry = new THREE.BufferGeometry();
