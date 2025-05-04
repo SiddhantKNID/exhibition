@@ -197,7 +197,7 @@
         const segments = 64;
         const geometry = new THREE.SphereGeometry(radius, segments, segments);
         const textureLoader = new THREE.TextureLoader();
-        const texture = textureLoader.load('./Assets/img/light_two.jpg');
+        const texture = textureLoader.load('./Assets/img/Globe Base X.png');
         const material = new THREE.MeshPhongMaterial({ map: texture });
         const globe = new THREE.Mesh(geometry, material);
         scene.add(globe);
